@@ -11,9 +11,8 @@
 
   1) [Repository Structure](#folder_structure)
   2) [EAMDrift model (Documentation)](#EAMDrift_model)
-  3) [Example Usage (EAMDrift model tutorial)](#usage_example)
-
-
+  3) [Example Usage (Tutorial)](#usage_example)
+  4) [Run with your own models (Tutorial)](#run_with_your_models)
 
 
 ## <a name="folder_structure"></a> 1. Repository Structure:
@@ -107,7 +106,7 @@ Train the model with a specific darts.utils.data.TrainingDataset instance. These
 
 ##### <a name="historical_forecasts"></a> historical_forecasts()
 
-## <a name="usage_example"></a> 3. Example Usage (EAMDrift model tutorial):
+## <a name="usage_example"></a> 3. Example Usage (Tutorial):
 
 <pre>
 <b>Global folder</b>  
@@ -150,7 +149,7 @@ trainning_dataframe_index, trainning_dataframe, errors = ensemble_model.create_t
 
 ```
 
-
+## <a name="run_with_your_models"></a> 4. Run with your own models (Tutorial):
 
 
 
