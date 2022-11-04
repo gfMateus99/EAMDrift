@@ -1,4 +1,4 @@
-# Ensemble Model (Interpretable)
+# EAMDrift
 
 ### Preamble
 1) Ensemble
@@ -19,7 +19,7 @@
 ## <a name="folder_structure"></a> 1. Repository Structure:
 
 <pre>
-<b>Ensemble Model (Interpretable)/</b>  
+<b>EAMDrift/</b>  
 │  
 ├─── <b>EAMDrift_model/</b>  
 │    ├─── Ensemble_Model_Class.py  
