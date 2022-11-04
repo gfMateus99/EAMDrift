@@ -1,4 +1,4 @@
-# EAMDrift
+# EAMDrift (Interpretable model)
 
 ### Preamble
 1) Ensemble
