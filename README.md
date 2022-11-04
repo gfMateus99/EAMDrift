@@ -9,11 +9,9 @@
 
 ### Organization of this document
 
-**1)** [Repository Structure](#folder_structure)
-
-**2)** [EAMDrift model](#EAMDrift_model)
-
-**3)** [Example Usage (EAMDrift model tutorial)](#usage_example)
+  1) [Repository Structure](#folder_structure)
+  2) [EAMDrift model (Documentation)](#EAMDrift_model)
+  3) [Example Usage (EAMDrift model tutorial)](#usage_example)
 
 
 
@@ -52,7 +50,7 @@
 
 - **Run Model.py**
 
-## <a name="EAMDrift_model"></a> 2. EAMDrift model:
+## <a name="EAMDrift_model"></a> 2. EAMDrift model (Documentation):
 
 ### Prerequisites:
 
