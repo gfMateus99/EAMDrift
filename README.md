@@ -27,7 +27,7 @@
 │         ├─── Models_Interface.py  
 │         ├─── ExponentialSmoothingClass.py  
 │         ├─── Prophet.py  
-│         ├─── SARIMA.py  
+│         ├─── StatsForecastAutoARIMA.py  
 │         ├─── KalmanForecasterClass.py  
 │         └─── Other_Model.py  
 │  
