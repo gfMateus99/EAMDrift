@@ -128,7 +128,7 @@ from EAMDrift_model.Ensemble_Model_Class import EAMDriftModel
 
 ```
 
-**2. Create EAMDriftModel**
+**2. Run EAMDriftModel**
 ```python
 if __name__ == '__main__':
 
