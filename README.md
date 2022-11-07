@@ -58,6 +58,7 @@ This model depends on the following Python packages:
 
 - darts
 - river
+- prophet
 - numpy
 - pandas
 - sklearn
@@ -66,6 +67,7 @@ This model depends on the following Python packages:
 - tqdm
 - datetime
 - warnings
+- logging
 
 ### EAMDrift:
 # 
