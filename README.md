@@ -120,8 +120,9 @@ Train the model with a specific darts.utils.data.TrainingDataset instance. These
 </pre>
 
 
-**0. Discover the number of jobs value**
+**Discover how many jobs you can use to run the model**
 
+Open your shell and run the following command:
 ```ps
 WMIC CPU Get NumberOfCores
 ```
@@ -155,7 +156,7 @@ if __name__ == '__main__':
                                    trainning_points_=150,
                                    prediction_points_=4,
                                    to_extract_features_=True,
-                                   n_jobs_=6)
+                                   n_jobs_=NumberOfCores)
                                    
     # Create trainning set
     trainning_dataframe_index, trainning_dataframe, errors = ensemble_model.create_trainning_set()
