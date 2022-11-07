@@ -130,26 +130,30 @@ from EAMDrift_model.Ensemble_Model_Class import EAMDriftModel
 
 **2. Create EAMDriftModel**
 ```python
-ensemble_model = EAMDriftModel(timeseries_df_ = dataframe,                           
-                               columnToPredict_ = "CPU utilization (average)",          
-                               time_column_ = "date",
-                               models_to_use_ = models,
-                               dataTimeStep_ = "6H",
-                               #trainning_samples_size_ = 100,  
-                               trainning_points_ = 150,               
-                               prediction_points_ = 4,                
-                               to_extract_features_ = True)    
+if __name__ == '__main__':
+
+    dataframe = pl_layer_6_hours[0].copy(
+    )[["date", "CPU utilization (average)"]]
+    
+    models = ["KalmanForecaster", "ExponentialSmoothing", "Prophet"]  # models to use
+
+    ensemble_model = EAMDriftModel(timeseries_df_=dataframe,
+                                   columnToPredict_="CPU utilization (average)",
+                                   time_column_="date",
+                                   models_to_use_=models,
+                                   dataTimeStep_="6H",
+                                   error_metric_="MAPE",
+                                   #trainning_samples_size_ = 100,
+                                   trainning_points_=150,
+                                   prediction_points_=4,
+                                   to_extract_features_=True,
+                                   n_jobs_=6)
+                                   
+    # Create trainning set
+    trainning_dataframe_index, trainning_dataframe, errors = ensemble_model.create_trainning_set()
+    
+    #Fit and predict
      
-```
-
-**3. Create trainning set**
-```python
-trainning_dataframe_index, trainning_dataframe, errors = ensemble_model.create_trainning_set()
-```
-
-**4. Fit and predict**
-```python
-
 ```
 
 ## <a name="run_with_your_models"></a> 4. Run with your own models (Tutorial):
