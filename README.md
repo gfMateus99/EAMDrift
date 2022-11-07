@@ -24,11 +24,12 @@
 │    ├─── Ensemble_Model_Class.py  
 │    ├─── Models.py  
 │    └─── <b>ModelsDB/</b>  
+│         ├─── Models_Interface.py  
 │         ├─── ExponentialSmoothingClass.py  
 │         ├─── Prophet.py  
 │         ├─── SARIMA.py  
-│         ├─── LSTM.py  
-│         └─── other_model.py  
+│         ├─── KalmanForecasterClass.py  
+│         └─── Other_Model.py  
 │  
 ├─── Run Model.py  
 │  
