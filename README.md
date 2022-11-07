@@ -119,6 +119,14 @@ Train the model with a specific darts.utils.data.TrainingDataset instance. These
 └─── YOUR_CODE.py
 </pre>
 
+
+**0. Discover the number of jobs value**
+
+```ps
+WMIC CPU Get NumberOfCores
+```
+
+
 **1. Imports**
 ```python
 #Import Folder
