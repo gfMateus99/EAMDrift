@@ -23,6 +23,9 @@
 ├─── <b>EAMDrift_model/</b>  
 │    ├─── Ensemble_Model_Class.py  
 │    ├─── Models.py  
+│    ├─── <b>rulefit/</b>  
+│         ├─── __init__.py
+│         ├─── rulefit.py
 │    └─── <b>ModelsDB/</b>  
 │         ├─── Models_Interface.py  
 │         ├─── ExponentialSmoothingClass.py  
