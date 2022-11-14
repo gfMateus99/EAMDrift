@@ -21,6 +21,7 @@
 <b>EAMDrift/</b>  
 │  
 ├─── <b>EAMDrift_model/</b>  
+│    ├─── __init__.py
 │    ├─── Ensemble_Model_Class.py  
 │    ├─── Models.py  
 │    ├─── <b>rulefit/</b>  
