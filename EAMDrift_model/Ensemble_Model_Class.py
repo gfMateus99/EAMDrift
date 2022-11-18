@@ -44,6 +44,8 @@ from river import drift
 from EAMDrift_model.Models import ModelsDB
 from EAMDrift_model.rulefit import RuleFit
 
+from darts.timeseries import TimeSeries
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -59,9 +61,11 @@ class EAMDriftModel:
                  dataTimeStep_: str,
                  covariates_: Optional[object] = None,
                  categorical_covariates_ : Optional[list] = None,
+                 covariates_ma_: Optional[int] = None,
                  error_metric_: Optional[str] = "MAPE",
                  trainning_samples_size_: Optional[int] = None,
                  trainning_points_: int = 150,
+                 fit_points_size_: int = 150,
                  prediction_points_: int = 4,
                  to_extract_features_: bool = True,
                  n_jobs_: Optional[int] = None):
@@ -99,13 +103,15 @@ class EAMDriftModel:
         self.timeseries_df = timeseries_df_
         self.columnToPredict = columnToPredict_
         self.time_column = time_column_
-        self.models_to_use = models_to_use_
+        self.models_to_use = models_to_use_.copy()
         self.dataTimeStep = dataTimeStep_
         self.covariates = covariates_
         self.categorical_covariates = categorical_covariates_
+        self.covariates_ma = covariates_ma_
         self.error_metric = error_metric_
         self.trainning_samples_size = trainning_samples_size_
         self.trainning_points = trainning_points_
+        self.fit_points_size = fit_points_size_
         self.prediction_points = prediction_points_
         self.to_extract_features = to_extract_features_
         self.to_retrain = False
@@ -119,12 +125,16 @@ class EAMDriftModel:
         
         
         #OTHERS
+        self.models_to_use_original = models_to_use_.copy()
         self.train_set = pd.DataFrame([])
         self.extract_features_data_y = []
         self.models_forecast_df = []
+        self.ensemble_model = None
         #import sys, os
         #sys.stdout = open(os.devnull, 'w')
         #tqdm.disable()
+        
+        self.features_col = []
 
     def create_trainning_set(self):
         """
@@ -132,7 +142,9 @@ class EAMDriftModel:
 
         Returns a dataframe to be used in trainning
         """
-
+        
+        self.models_to_use = self.models_to_use_original.copy()
+        
         # Pre calculation
         # Max number of splits that can happen
         max_splits = math.floor(
@@ -180,26 +192,34 @@ class EAMDriftModel:
         # Calculate the best models
         errors_df = self.__calc_best_model(errors_df)
         
+        num = 0
+        for x in errors_df[errors_df.columns].mean():
+            print(f"{errors_df.columns[num]}: {round(x,2)}");
+            num = num + 1
+        
         # Save trainning set
         self.train_set = covariates_data.copy()
         self.train_set["Best Model"] = errors_df["Best Model"].values
-        self.models_forecast_df = models_forecast_df
-        """
-        split_dataframe, - index split pode sair......
-        self.timeseries_df, - dataframe com timeseries 
-        errors_df, - erros de cada modelo no treino pode sair......
-        covariates_data - data de covariadas para treino pode sair......
-        models_forecast_df - forecast de cada modelo pode sair......
+        self.models_forecast_df = models_forecast_df.reindex(sorted(models_forecast_df.columns), axis=1)
         
-        
-        Este método so devia retornar o conjunto de treino que usou, info das variaveis categoricas maybe 
-        conjunto de treino = self.timeseries_df | covariates_data | errors_df | models_forecast_df
-        (errors_df | models_forecast_df) esta parte podia estar ocultada do utilizador
-        
-        errors_df =[]
-        """
-        
-        return split_dataframe, self.timeseries_df, errors_df, covariates_data, models_forecast_df
+        self.extract_features_data_y = pd.DataFrame(self.extract_features_data_y, columns=["feat_y"])
+        new_aux = pd.DataFrame(self.train_set["Best Model"].value_counts())
+        new_aux = new_aux[new_aux["Best Model"] == 1].index.values
+        for x in new_aux:
+            print(f"Removed {x}")
+            self.models_to_use.remove(x)            
+            self.models_forecast_df.drop([x], axis = 1, inplace=True)
+            index_ = self.train_set[self.train_set["Best Model"] == x].index[0]
+            
+            self.train_set=self.train_set.drop(index=(index_))
+            self.models_forecast_df=self.models_forecast_df.drop(index=(index_))
+            self.extract_features_data_y=self.extract_features_data_y.drop(index=(index_))
+            
+        self.train_set = self.train_set.reset_index(drop=True)
+        self.models_forecast_df = self.models_forecast_df.reset_index(drop=True)
+        self.extract_features_data_y =  self.extract_features_data_y["feat_y"].values
+
+        return self.train_set
 
     def __splitting_dataframe(self, additionally_space: int):
         """
@@ -230,20 +250,8 @@ class EAMDriftModel:
             extract_features_data_y.append(
                 (self.timeseries_df.iloc[splitIndex: endIndex][self.columnToPredict]).mean())
 
-
-            """
-            
-            
-            ESTUDAR ESTE PROBLEMA E ESTUDAR MLHR COMO OS DADOS PODEM APARECER
-            
-            
-            
-            """
-            #Process co variates 
-            #problema aqui é que osao valores iguais logo nao devia contar.....
-            pointsToUse = 7*4 # tem de haver qq restricao aqui para n permitir mais do q suposto
-            #
-            covariates_aux = self.covariates.iloc[(splitIndex-pointsToUse): splitIndex]            
+            # TODO: ver mlhr
+            covariates_aux = self.covariates.iloc[(splitIndex-self.covariates_ma): splitIndex]            
             covariates_split_processed = []
             
             for col in self.covariates.columns:
@@ -267,13 +275,19 @@ class EAMDriftModel:
         features_data: object -
         features_data_y: list -
         """
+        from tsfresh.feature_extraction import MinimalFCParameters
         extracted_features = extract_features(features_data,
                                               column_id="id",
-                                              column_sort="time")
+                                              column_sort="time",)
+                                              #default_fc_parameters=MinimalFCParameters())
 
         impute(extracted_features)
         features_filtered = select_features(extracted_features,
                                             pd.Series(features_data_y))
+        
+        self.features_col = features_filtered.columns
+            
+        
 
         print(
             f"Note: {len(features_filtered.columns)} features selected from a total of {len(extracted_features.columns)}")
@@ -404,7 +418,7 @@ class EAMDriftModel:
 
         return errors_dataframe
 
-    def __detectDrift(self, drift_type: Optional[str] = "KSWIN"):  # SEMI-FEITO
+    def __detectDrift(self, drift_type: Optional[str] = "KSWIN"):  # TODO: - TER ERROS
         """
         Alerts if any drift was detected.
 
@@ -437,11 +451,12 @@ class EAMDriftModel:
 
         return False
 
-    def fitEnsemble(self):  # FAZER
+    def fitEnsemble(self):
         if(self.train_set.empty):
             raise Exception('No trainning set created')
     
         y = self.train_set["Best Model"] 
+        print(self.train_set["Best Model"].value_counts())
         X = self.train_set.copy()
         X = X.drop(["Best Model"], axis=1)
         
@@ -449,60 +464,114 @@ class EAMDriftModel:
         X = X.values
         
         y_class = y.copy()
-        #print(y_class)
-        N = X.shape[0]
-        
-        rf = RuleFit(tree_size=4, sample_fract='default', max_rules=2000,
+        #N = X.shape[0]
+
+        self.ensemble_model = RuleFit(tree_size=4, sample_fract='default', max_rules=2000,
                      memory_par=0.01, tree_generator=None,
                      rfmode='classify', lin_trim_quantile=0.025,
                      lin_standardise=True, exp_rand_tree_size=True, random_state=1) 
     
-        rf.fit(X, y_class, feature_names=features)
-        y_pred = rf.predict(X)
+        self.ensemble_model.fit(X, y_class, feature_names=features)
+        y_pred = self.ensemble_model.predict(X)
         #print(print(pd.DataFrame(y_pred).value_counts()))
-        y_proba = rf.predict_proba(X)
+        y_proba = self.ensemble_model.predict_proba(X)
         y_proba = pd.DataFrame(y_proba)
         #print(y_proba)
         insample_acc = sum(y_pred == y_class) / len(y_class)
-        print(insample_acc)
-        rules = rf.get_rules()
+        print(f"Ensemble Model accuracy: {insample_acc}")
+
+        rules = self.ensemble_model.get_rules()
     
         rules = rules[rules.coef != 0].sort_values(by="support")
-        num_rules_rule = len(rules[rules.type == 'rule'])
-        num_rules_linear = len(rules[rules.type == 'linear'])
+        #num_rules_rule = len(rules[rules.type == 'rule'])
+        #num_rules_linear = len(rules[rules.type == 'linear'])
         #print(rules.sort_values('importance', ascending=False))
        
-        """
-        self.extract_features_data_y = []
-        self.models_forecast_df = []
-        
-        
         count = 0
-        for x in models_forecast_df.columns:
-            models_forecast_df[x] = models_forecast_df[x] * y_proba[count]
+        for x in self.models_forecast_df.columns:
+            self.models_forecast_df[x] = self.models_forecast_df[x] * y_proba[count]
             count+=1
           
-        all_sum = models_forecast_df.sum(axis='columns')
+        all_sum = self.models_forecast_df.sum(axis='columns')
 
         forecasts = []
         for x in range(len(all_sum)):
             forecasts.append(all_sum.iloc[x].mean())
+        
+        print(f"Trainning error: {mean_absolute_percentage_error(forecasts, self.extract_features_data_y)}")
             
-        mean_absolute_percentage_error(forecasts, extract_features_data_y)
-        """ 
+        #return y_proba, self.extract_features_data_y, y_pred, rules,forecasts
+        return rules
+
+    def predict(self, n: Optional[int] = None, series: Optional[TimeSeries] = None, covariates: Optional[TimeSeries] = None):
+        if (n == None):
+            n = self.prediction_points
+    
+        # TODO: CASO AS SERIES NÃO SEJA NULL
+            #CRIAR NOVO CONJUNTO DE TREINO / ADICIONAR ESTE NOVO CONJUNTO AO CONJUNTO ANTIGO
+            #NAO PRECISA DE TREINAR
+            #ISTO É MAIS PARA ELE CONSEGUIR PREVER NO ENSEMBLE
+
+        # TODO: TESTAR AQUI COM FIT DE TODO O CONJUNTO DE TREINO
+        df_fixed = pd.DataFrame(
+            self.timeseries_df.iloc[-self.trainning_points:][self.columnToPredict]).reset_index(drop=True)
+        
+        df_fixed["id"] = 0
+        df_fixed["time"] = list(range(0, self.trainning_points))
+
+        extracted_features = extract_features(df_fixed,                         
+                                              column_id="id",     
+                                              column_sort = "time",
+                                              column_value=self.columnToPredict,               
+                                              disable_progressbar=True,
+                                              n_jobs=1)        
+        
+        extracted_features = extracted_features[self.features_col]
+        
+        covariates_aux = self.covariates.iloc[-self.covariates_ma:]           
+        covariates_split_processed = []
+        
+        for col in self.covariates.columns:
+            if(col in self.categorical_covariates):
+                covariates_split_processed.append(covariates_aux[col].value_counts().iloc[0])
+            else:
+                covariates_split_processed.append(covariates_aux[col].sum())
+        covariates_split_processed = pd.DataFrame([covariates_split_processed], columns=[self.covariates.columns])
+        
+        covariates_data = pd.concat([covariates_split_processed, extracted_features], axis=1)
+        y_prob = pd.DataFrame(self.ensemble_model.predict_proba(covariates_data.values))
+        
+        models_class = ModelsDB(train_df_=self.timeseries_df.iloc[-self.fit_points_size:], pointsToPredict_=n,
+                                columnToPredict_=self.columnToPredict, time_column_=self.time_column, dataTimeStep_=self.dataTimeStep)
+                
+        models_forecast = []
+        for model_name in self.models_to_use:
+            ModelClass = models_class.run_models(model_name)
+            ModelClass.run_and_fit_model()
+            forecast = ModelClass.predict()            
+            models_forecast.append(forecast)
             
-             
+        models_forecast = pd.DataFrame([models_forecast], columns=self.models_to_use)
+        models_forecast = models_forecast.reindex(sorted(models_forecast.columns), axis=1)
         
-        
-        
-        return y_proba, self.extract_features_data_y
+        count = 0
+        for x in models_forecast.columns:
+            models_forecast[x] = models_forecast[x] * y_prob[count]
+            count+=1
+          
+        prediction = models_forecast.sum(axis='columns')
 
-    def predict(self):  # FAZER
+        return prediction[0]
 
+    def add_and_predict(self, newObservations: Optional[object] = None, newCovariates: Optional[object] = None): # TODO: c
+
+        # TODO: check dates
+        self.timeseries_df = pd.concat([self.timeseries_df, newObservations], axis=0).reset_index(drop=True)
+        self.covariates = pd.concat([self.covariates, newCovariates], axis=0).reset_index(drop=True)
+        
         # mm que nao haja drift se as accuracys tiverem a descer, retreina
-
         # adiciona os novos pontos ao dataframe de treino e ao timeseries
-
+        """
         if(self.__detectDrift()):
             self.to_retrain = True
 
@@ -512,14 +581,22 @@ class EAMDriftModel:
                 # re train
                 # self.to_retrain=False
                 print("")
-
+        """
         # Predict
+        
+        prediction = self.predict(self.prediction_points)
+        
+        return prediction
 
+    def historical_forecasts(self): # TODO: w
+    
+        #ciclo do add and predict tudo aqui dentrob
+    
         return ""
 
-    def historical_forecasts(self):  # FAZER
+    def run_fit_predict(self): # TODO: w
         return ""
-
+    
     def compute_errors(self, forecast, val):
         """
             Compute model errors
@@ -535,12 +612,11 @@ class EAMDriftModel:
 
         return mae_cross_val, mse_cross_val, mape
 
-
-
-
-
-
-
-
-
-
+    def print_report(): # TODO: w
+        from tabulate import tabulate
+        data = [[1, 'Liquid', 24, 12],
+        [2, 'Virtus.pro', 19, 14],
+        [3, 'PSG.LGD', 15, 19],
+        [4,'Team Secret', 10, 20]]
+        print (tabulate(data, headers=["Pos", "Team", "Win", "Lose"]))
+        print("")

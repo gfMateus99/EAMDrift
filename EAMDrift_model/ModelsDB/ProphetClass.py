@@ -18,13 +18,13 @@ class ProphetClass(ModelsInterface):
     def __init__(self, modelName_: str, train_df_: object, pointsToPredict_: int, columnToPredict_: str, time_column_: str, dataTimeStep_: str):
         self.MODEL_NAME = modelName_
         self.points_to_predict = pointsToPredict_
-        self.train_df = train_df_
+        self.train_df = train_df_.copy()
         self.train_timeseries = TimeSeries.from_dataframe(train_df_, time_column_, columnToPredict_, freq=dataTimeStep_)
         self.dataTimeStep = dataTimeStep_
         
         self.model = Prophet
         
-        self.train_df = self.train_df[["date", "CPU utilization (average)"]]
+        self.train_df = self.train_df[["date", columnToPredict_]]
         self.train_df.columns = ['ds', 'y']
         
         self.mean_y = self.train_df["y"].mean()

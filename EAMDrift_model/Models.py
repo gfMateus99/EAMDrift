@@ -9,6 +9,7 @@ from EAMDrift_model.ModelsDB.ExponentialSmoothingClass import ExponentialSmoothi
 from EAMDrift_model.ModelsDB.ProphetClass import ProphetClass
 from EAMDrift_model.ModelsDB.KalmanForecasterClass import KalmanForecasterClass
 from EAMDrift_model.ModelsDB.StatsForecastAutoARIMAClass import StatsForecastAutoARIMAClass
+from EAMDrift_model.ModelsDB.LSTMClass import LSTMClass
 
 class ModelsDB:
     def __init__(self, train_df_: object, pointsToPredict_: int, columnToPredict_: str, time_column_: str, dataTimeStep_: str):
@@ -28,6 +29,10 @@ class ModelsDB:
             return KalmanForecasterClass(model_to_run, self.train_df, self.pointsToPredict, self.columnToPredict, self.time_column, self.dataTimeStep)  
         elif model_to_run == "StatsForecastAutoARIMA":
             return StatsForecastAutoARIMAClass(model_to_run, self.train_df, self.pointsToPredict, self.columnToPredict, self.time_column, self.dataTimeStep)  
+        elif model_to_run == "LSTM":
+            return LSTMClass(model_to_run, self.train_df, self.pointsToPredict, self.columnToPredict, self.time_column, self.dataTimeStep, [1, 0, 150, 0.001, 'MSE'])  
+        elif model_to_run == "LSTM2":
+            return LSTMClass(model_to_run, self.train_df, self.pointsToPredict, self.columnToPredict, self.time_column, self.dataTimeStep, [2, 0, 150, 0.001, 'l1'])  
               
         
         
