@@ -10,6 +10,7 @@ from EAMDrift_model.ModelsDB.ProphetClass import ProphetClass
 from EAMDrift_model.ModelsDB.KalmanForecasterClass import KalmanForecasterClass
 from EAMDrift_model.ModelsDB.StatsForecastAutoARIMAClass import StatsForecastAutoARIMAClass
 from EAMDrift_model.ModelsDB.LSTMClass import LSTMClass
+from EAMDrift_model.ModelsDB.TransformerClass import TransformerClass
 
 class ModelsDB:
     def __init__(self, train_df_: object, pointsToPredict_: int, columnToPredict_: str, time_column_: str, dataTimeStep_: str):
@@ -33,6 +34,8 @@ class ModelsDB:
             return LSTMClass(model_to_run, self.train_df, self.pointsToPredict, self.columnToPredict, self.time_column, self.dataTimeStep, [1, 0, 150, 0.001, 'MSE'])  
         elif model_to_run == "LSTM2":
             return LSTMClass(model_to_run, self.train_df, self.pointsToPredict, self.columnToPredict, self.time_column, self.dataTimeStep, [2, 0, 150, 0.001, 'l1'])  
+        elif model_to_run == "TRANSFORMER":
+            return TransformerClass(model_to_run, self.train_df, self.pointsToPredict, self.columnToPredict, self.time_column, self.dataTimeStep, [0.15, 0.0001, 'MSE'])  
               
         
         

@@ -29,15 +29,16 @@ import pandas as pd
 import math
 from tqdm import tqdm
 from typing import Optional
-from joblib import Parallel, delayed
+#from joblib import Parallel, delayed
+import numpy as np 
 
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_percentage_error
 
 from tsfresh import extract_features
-from tsfresh import select_features
-from tsfresh.utilities.dataframe_functions import impute
+#from tsfresh import select_features
+#from tsfresh.utilities.dataframe_functions import impute
 
 from river import drift
 
@@ -130,6 +131,9 @@ class EAMDriftModel:
         self.extract_features_data_y = []
         self.models_forecast_df = []
         self.ensemble_model = None
+        self.pca = None
+        self.scaler = None
+        self.useDifferent=False
         #import sys, os
         #sys.stdout = open(os.devnull, 'w')
         #tqdm.disable()
@@ -147,10 +151,17 @@ class EAMDriftModel:
         
         # Pre calculation
         # Max number of splits that can happen
-        max_splits = math.floor(
-            (len(self.timeseries_df)-self.trainning_points)/self.prediction_points)
+        if (self.fit_points_size > self.trainning_points):
+            self.useDifferent=True
+            max_splits = math.floor(
+                ((len(self.timeseries_df)-self.fit_points_size)-self.trainning_points)/self.prediction_points)
+        else: 
+            max_splits = math.floor(
+                (len(self.timeseries_df)-self.trainning_points)/self.prediction_points)
         self.trainning_samples_size = max_splits if (
             self.trainning_samples_size == None) else self.trainning_samples_size
+
+
 
         # Exceptions
         if(self.trainning_points > len(self.timeseries_df)):
@@ -205,6 +216,15 @@ class EAMDriftModel:
         self.extract_features_data_y = pd.DataFrame(self.extract_features_data_y, columns=["feat_y"])
         new_aux = pd.DataFrame(self.train_set["Best Model"].value_counts())
         new_aux = new_aux[new_aux["Best Model"] == 1].index.values
+        
+        
+        models_to_use_aux = self.models_to_use.copy()
+        for x in models_to_use_aux:
+            if(x not in self.train_set["Best Model"].value_counts().index.values):
+                print(f"Removed {x}")
+                self.models_to_use.remove(x)   
+                self.models_forecast_df.drop([x], axis = 1, inplace=True)
+
         for x in new_aux:
             print(f"Removed {x}")
             self.models_to_use.remove(x)            
@@ -275,25 +295,102 @@ class EAMDriftModel:
         features_data: object -
         features_data_y: list -
         """
-        from tsfresh.feature_extraction import MinimalFCParameters
         extracted_features = extract_features(features_data,
                                               column_id="id",
-                                              column_sort="time",)
-                                              #default_fc_parameters=MinimalFCParameters())
-
-        impute(extracted_features)
-        features_filtered = select_features(extracted_features,
-                                            pd.Series(features_data_y))
+                                              column_sort="time")
         
-        self.features_col = features_filtered.columns
-            
-        
+        #TODO: Talvez meter para aqui o for para tirar o cpu utilziation
+             
+        df, loadings_names, principal_df = self.__filter_features(extracted_features, features_data_y)
 
         print(
-            f"Note: {len(features_filtered.columns)} features selected from a total of {len(extracted_features.columns)}")
+            f"Note: {len(df.columns)} features selected from a total of {len(extracted_features.columns)}")
 
-        return features_filtered
+        return principal_df
 
+    def __filter_features(self, features_data: object, features_data_y: object):
+        from sklearn.feature_selection import VarianceThreshold
+        from sklearn.preprocessing import StandardScaler
+        from sklearn.decomposition import PCA
+        from sklearn.feature_selection import SelectKBest
+        from sklearn.feature_selection import f_classif #ANOVA Test
+                
+        df = features_data.copy()
+        print(df.shape)
+        # Remove columns with more than 50% of null values
+        df_aux = pd.DataFrame(df.isna().sum())
+        df_aux = df_aux[df_aux[0]>len(df)/2]
+        df = df.drop(df_aux.index.values, axis=1)
+        print(df.shape)      
+        
+        df.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+        # Equal and Similar features 95% similarity
+        var_threshold = VarianceThreshold(threshold=0.05)
+        var_threshold.fit(df)
+        features = var_threshold.transform(df)
+        df = pd.DataFrame(features, columns=var_threshold.get_feature_names_out())
+        print(df.shape)
+        
+        # Fill the remmaing nan with 0
+        df = df.fillna(0)
+    
+        # Correlated features - remove correlation greater than 0.95
+        corr_matrix = df.corr().abs()
+        upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+        to_drop = [column for column in upper.columns if any(upper[column] > 0.95)]
+        df = df.drop(to_drop, axis=1)
+        print(df.shape)
+        
+        # ANOVA Test
+        anova = SelectKBest(f_classif, k='all').fit(df, features_data_y)
+        col_aux = df.columns
+        to_drop=[]
+        for i in range(len(anova.scores_)):
+            if(anova.scores_[i] < pd.DataFrame(anova.scores_).describe().values[4][0]):
+                to_drop.append(col_aux[i]) 
+                #print('Feature %d: %f' % (i, anova.scores_[i]))D
+        df = df.drop(to_drop, axis=1)
+        print(df.shape)
+    
+        # Save columns
+        self.features_col = df.columns
+        
+        # PCA
+        # Normalizing the features
+        self.scaler = StandardScaler()
+        x = self.scaler.fit_transform(df) 
+    
+        # PCA - keep 90% of variance
+        self.pca = PCA(0.9)
+        principal_components = self.pca.fit_transform(x)
+        
+        column = []
+        for x_ in range(principal_components.shape[1]):
+            column.append("PC"+str(x_))
+            
+        principal_df = pd.DataFrame(data = principal_components, columns=column)
+        print(principal_df.shape)
+    
+        # PCA - get loadings
+        loadings_names = pd.DataFrame(self.pca.components_.T, columns=column, index=df.columns)
+    
+        return df, loadings_names, principal_df        
+      
+    def __add_features(self, new_obs: object):
+        
+        x = self.scaler.fit_transform(new_obs) 
+        
+        # Add new point to pca
+        new_aux = self.pca.transform(x)
+        
+        column = []
+        for x_ in range(new_aux.shape[1]):
+            column.append("PC"+str(x_))
+            
+        principal_df = pd.DataFrame(data = new_aux, columns=column)
+        return principal_df        
+        
     def __test_models_init(self, train_dataframe_index: object):
         """
         Returns a dataframe with features filtered
@@ -345,6 +442,7 @@ class EAMDriftModel:
 
         train_dataframe_index: object -
         """
+        from joblib import Parallel, delayed
 
         df_fixed_index = train_dataframe_index[["df_fixed_index"]]  # index x
         y_index = train_dataframe_index[["y_index"]]  # index y
@@ -372,7 +470,11 @@ class EAMDriftModel:
         train_index = df_fixed_index.iloc[index][0]
         val_index = y_index.iloc[index][0]
 
-        train_set = self.timeseries_df.iloc[train_index[0]: train_index[1]]
+        if(self.useDifferent):
+            train_set = self.timeseries_df.iloc[(train_index[1]-self.fit_points_size): train_index[1]]
+        else:
+            train_set = self.timeseries_df.iloc[train_index[0]: train_index[1]]
+        
         val_set = self.timeseries_df.iloc[val_index[0]: val_index[1]][self.columnToPredict]
         models_class = ModelsDB(train_df_=train_set, pointsToPredict_=self.prediction_points,
                                 columnToPredict_=self.columnToPredict, time_column_=self.time_column, dataTimeStep_=self.dataTimeStep)
@@ -503,16 +605,24 @@ class EAMDriftModel:
         #return y_proba, self.extract_features_data_y, y_pred, rules,forecasts
         return rules
 
+    
+    def change_timeseries(self, series: object, covariates: object):
+        self.covariates = covariates
+        self.timeseries_df = series
+
+
     def predict(self, n: Optional[int] = None, series: Optional[TimeSeries] = None, covariates: Optional[TimeSeries] = None):
         if (n == None):
             n = self.prediction_points
     
         # TODO: CASO AS SERIES NÃO SEJA NULL
+        #self.covariates
+        #self.timeseries_df
+        #
             #CRIAR NOVO CONJUNTO DE TREINO / ADICIONAR ESTE NOVO CONJUNTO AO CONJUNTO ANTIGO
             #NAO PRECISA DE TREINAR
             #ISTO É MAIS PARA ELE CONSEGUIR PREVER NO ENSEMBLE
 
-        # TODO: TESTAR AQUI COM FIT DE TODO O CONJUNTO DE TREINO
         df_fixed = pd.DataFrame(
             self.timeseries_df.iloc[-self.trainning_points:][self.columnToPredict]).reset_index(drop=True)
         
@@ -527,6 +637,7 @@ class EAMDriftModel:
                                               n_jobs=1)        
         
         extracted_features = extracted_features[self.features_col]
+        extracted_features = self.__add_features(extracted_features)
         
         covariates_aux = self.covariates.iloc[-self.covariates_ma:]           
         covariates_split_processed = []
