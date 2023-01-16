@@ -40,20 +40,6 @@
 └─── README.md  
 </pre>
 
-### Files Descriptions
-
-- **Ensemble_Model_Class.py**
-
-  - This script contains the code to apply anomaly detection methods to data from four sensors (water temperature, specific conductance, pH, dissolved oxygen) at six sites in the Logan River Observatory. 
-
-- **Models.py**
-
-- **Ensemble_Model_Class.py**
-
-- **ModelsDB files**
-
-- **Run Model.py**
-
 ## <a name="EAMDrift_model"></a> 2. EAMDrift model (Documentation):
 
 ### Prerequisites:
