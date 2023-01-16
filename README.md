@@ -77,11 +77,25 @@ This model depends on the following Python packages:
 # 
 
 
-<b>class EAMDriftModel(```timeseries_df_, columnToPredict_, time_column_, models_to_use_, dataTimeStep_,
-                       trainning_samples_size_ = None,
-                       trainning_points_ = 150,
-                       prediction_points_ = 4,
-                       to_extract_features_ = True```)</b>
+<b>class EAMDriftModel(```self,
+                 timeseries_df_: object,
+                 columnToPredict_: str,
+                 time_column_: str,
+                 models_to_use_: list,
+                 dataTimeStep_: str,
+                 covariates_: Optional[object] = None,
+                 categorical_covariates_ : Optional[list] = [],
+                 covariates_ma_: Optional[int] = None,
+                 error_metric_: Optional[str] = "MAPE",
+                 trainning_samples_size_: Optional[int] = None,
+                 trainning_points_: int = 150,
+                 fit_points_size_: int = 150,
+                 prediction_points_: int = 4,
+                 to_extract_features_: bool = True,
+                 use_dates_: bool = True,
+                 selectBest_: int = None,
+                 to_retrain_: Optional[bool] = True,
+                 n_jobs_: Optional[int] = None```)</b>
 
 <b>Parameters</b>
  - timeseries_df_(object) - Number of time steps to be input to the forecasting module.
@@ -134,38 +148,83 @@ WMIC CPU Get NumberOfCores
 
 **1. Imports**
 ```python
-#Import Folder
-from EAMDrift_model.Ensemble_Model_Class import EAMDriftModel
+##############################################################################
+# Imports
+##############################################################################
+from EAMDrift_model import EAMDriftModel
+import pandas as pd
+import warnings
+warnings.filterwarnings("ignore")
 
-#Import dataset
+##############################################################################
+# Load files and covariates
+##############################################################################
+data = pd.read_csv(r'data_hours_organized_reduced.csv')
+data['date'] = pd.to_datetime(data['date'], format='%Y-%m-%d %H:%M:%S')
+covariates_aux = data.copy()
+covariates_col = covariates_aux.columns
+covariates_aux = covariates_aux.reset_index()
+covariates_aux.drop(covariates_col, axis = 1, inplace=True)
 
 ```
 
 **2. Run EAMDriftModel**
 ```python
+##############################################################################
+# Model run
+##############################################################################
+
 if __name__ == '__main__':
 
-    dataframe = pl_layer_6_hours[0].copy(
-    )[["date", "CPU utilization (average)"]]
+    # Data    
+    dataframe = data[["date", "cpu_usage"]].copy()    
     
-    models = ["KalmanForecaster", "ExponentialSmoothing", "Prophet"]  # models to use
+    # Models to use
+    models = ["TRANSFORMER", "LSTM", "LSTM2", "SARIMAX", "ExponentialSmoothing", "Prophet"]
 
-    ensemble_model = EAMDriftModel(timeseries_df_=dataframe,
-                                   columnToPredict_="CPU utilization (average)",
+    # Standartize
+    mean_y = dataframe["cpu_usage"].mean()
+    std_y = dataframe["cpu_usage"].std()
+    dataframe["cpu_usage"] = (dataframe["cpu_usage"]-mean_y)/std_y
+
+    index = 223
+    points_to_predict = 6
+    ensemble_model = EAMDriftModel(timeseries_df_=dataframe[0:index],
+                                   columnToPredict_="cpu_usage",
                                    time_column_="date",
                                    models_to_use_=models,
-                                   dataTimeStep_="6H",
+                                   dataTimeStep_="1H",
+                                   covariates_=covariates_aux[0:index],
+                                   #categorical_covariates_ = [],
+                                   covariates_ma_=7, 
                                    error_metric_="MAPE",
                                    #trainning_samples_size_ = 100,
-                                   trainning_points_=150,
-                                   prediction_points_=4,
+                                   trainning_points_=100, 
+                                   fit_points_size_=100,
+                                   prediction_points_=points_to_predict,
                                    to_extract_features_=True,
-                                   n_jobs_=NumberOfCores)
-                                   
-    # Create trainning set
-    trainning_dataframe_index, trainning_dataframe, errors = ensemble_model.create_trainning_set()
+                                   use_dates_=True,
+                                   #selectBest_=1, # None selects all
+                                   to_retrain_=True,
+                                   n_jobs_=6
+                                   )
     
-    #Fit and predict
+    # Make Trainning set
+    trainning_set_init, self_ = ensemble_model.create_trainning_set()     
+    
+    # Train ensemble method
+    rules = ensemble_model.fitEnsemble() 
+    
+    # Predict
+    #prediction = ensemble_model.predict() # Predict the next points_to_predict points
+    
+    # Predict with historical forecasts
+    forecast, dates, y_true = ensemble_model.historical_forecasts(dataframe[index:], 
+                                                                  forecast_horizon = int((len(dataframe)-index)/points_to_predict), 
+                                                                  covariates = covariates_aux[index:])
+
+    # Print Report
+    #ensemble_model.print_report(self)
      
 ```
 
