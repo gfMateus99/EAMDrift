@@ -12,7 +12,7 @@
   1) [Repository Structure](#folder_structure)
   2) [EAMDrift model (Documentation)](#EAMDrift_model)
   3) [Example Usage (Tutorial)](#usage_example)
-  4) [Run with your own models (Tutorial)](#run_with_your_models)
+  4) [Output example](#output)
 
 
 ## <a name="folder_structure"></a> 1. Repository Structure:
@@ -109,9 +109,9 @@ This model depends on the following Python packages:
 | Method | Description |
 | :---:   | :---: |
 | **[create_trainning_set()](#create_trainning_set)** | Split dataframe in subsets to train the ensemble model. |
-| **[fitEnsemble()](#fit)** | Fit/train the model on one series. | 
-| **[historical_forecasts()](#historical_forecasts)** | Compute the historical forecasts that would have been obtained by this model on the series. |
-| **[predict()](#predict)** | Compute the historical forecasts that would have been obtained by this model on the series. |
+| **[fitEnsemble()](#fit)** | Fit/train the model on target serie. | 
+| **[historical_forecasts()](#historical_forecasts)** | Compute the historical forecasts that this model in a real-time situation would have obtained. |
+| **[predict()](#predict)** | Predict the next x points. |
 | **[change_timeseries()](#change_timeseries)** | Change the timeseries that is beeing analyzed. The trainning set will remain the same until a retrain is needed. |
 | **[add_and_predict()](#add_and_predict)** | Add more values to timeseries to predict the next ones. |
 | **[run_fit_predict()](#run_fit_predict)** | Automatically runs all functions to predict (create_trainning_set() and predict()). |
@@ -221,4 +221,7 @@ if __name__ == '__main__':
     #ensemble_model.print_report(self)
      
 ```
+
+## <a name="output"></a> 4. Output Example:
+
 
