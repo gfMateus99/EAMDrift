@@ -33,7 +33,7 @@
 │         ├─── Prophet.py  
 │         ├─── StatsForecastAutoARIMA.py  
 │         ├─── KalmanForecasterClass.py  
-│         └─── Other_Model.py  
+│         └─── Transformer.py  
 │  
 ├─── Run Model.py  
 │  
