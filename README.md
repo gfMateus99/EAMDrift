@@ -222,15 +222,3 @@ if __name__ == '__main__':
      
 ```
 
-## <a name="run_with_your_models"></a> 4. Run with your own models (Tutorial):
-<pre>
-<b>Global folder</b>  
-│  
-├─── EAMDrift_model  
-│  
-└─── YOUR_CODE.py
-</pre>
-
-
-
-
