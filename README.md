@@ -113,22 +113,21 @@ This model depends on the following Python packages:
 
 | Method | Description |
 | :---:   | :---: |
-| [create_trainning_set()](#create_trainning_set) | Split dataframe in subsets to train the ensemble model. |
-| [fit()](#fit) | Fit/train the model on one series. | 
-| [historical_forecasts()](#historical_forecasts) | Compute the historical forecasts that would have been obtained by this model on the series. |
+| **[create_trainning_set()](#create_trainning_set)** | Split dataframe in subsets to train the ensemble model. |
+| **[fitEnsemble()](#fit)** | Fit/train the model on one series. | 
+| **[historical_forecasts()](#historical_forecasts)** | Compute the historical forecasts that would have been obtained by this model on the series. |
+| **[predict()](#predict)** | Compute the historical forecasts that would have been obtained by this model on the series. |
+| **[change_timeseries()](#change_timeseries)** | Change the timeseries that is beeing analyzed. The trainning set will remain the same until a retrain is needed. |
+| **[add_and_predict()](#add_and_predict)** | Add more values to timeseries to predict the next ones. |
+| **[run_fit_predict()](#run_fit_predict)** | Automatically runs all functions to predict (create_trainning_set() and predict()). |
+| **[compute_errors()](#compute_errors)** | Compute the errors given a true and forecast array. |
+| **[force_retrain()](#force_retrain)** | Force the retrain of the model. |
+| **[print_report()](#print_report)** | Save files with info about model run (probabilities, rules, features selected). |
 
-
-##### <a name="create_trainning_set"></a> create_trainning_set()
-##### <a name="fit"></a> fit()
-Train the model with a specific darts.utils.data.TrainingDataset instance. These datasets implement a PyTorch Dataset, and specify how the target and covariates are sliced for training
-
-**Returns:** Fitted model.
-**Returns type:** self.
-
-##### <a name="historical_forecasts"></a> historical_forecasts()
 
 ## <a name="usage_example"></a> 3. Example Usage (Tutorial):
 
+**Create a file in the same folder of EAMDrift_model:**
 <pre>
 <b>Global folder</b>  
 │  
@@ -229,7 +228,13 @@ if __name__ == '__main__':
 ```
 
 ## <a name="run_with_your_models"></a> 4. Run with your own models (Tutorial):
-
+<pre>
+<b>Global folder</b>  
+│  
+├─── EAMDrift_model  
+│  
+└─── YOUR_CODE.py
+</pre>
 
 
 
