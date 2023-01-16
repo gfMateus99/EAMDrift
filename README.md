@@ -84,15 +84,24 @@ This model depends on the following Python packages:
                  n_jobs_: Optional[int] = None```)</b>
 
 <b>Parameters</b>
- - timeseries_df_(object) - Number of time steps to be input to the forecasting module.
- - columnToPredict_(str)
- - time_column_(str)
- - models_to_use_(list)
- - dataTimeStep_(str)
- - trainning_samples_size_(Optional[int])
- - trainning_points_(int)
- - prediction_points_(int)
- - to_extract_features_(bool)
+ - **timeseries_df_(object) -** Dataframe with timeseries data.
+ - **columnToPredict_(str) -** Column in timeseries_df_ to predict.
+ - **time_column_(str) -** Column in timeseries_df_ with date time
+ - **models_to_use_(list) -** List of models to use (at least two models is necessary)
+ - **dataTimeStep_(str) -** Time step of time_column_ (i.e. "6H", "1H", ...).
+ - **covariates_: Optional[object] -** Dataframe with covariates data.
+ - **categorical_covariates_ : Optional[list] -** Categorical covariates in covariates_ dataframe.
+ - **covariates_ma_: Optional[int] -** Observation window for covariates at each prediction (an observation of 7, corresponds to use the last 7 covariates lines).
+ - **error_metric_: Optional[str] -** Metric to select the best models. Default is "MAPE"
+ - **trainning_samples_size_: Optional[int] -** Number of samples in trainningset. If no value is given, the model will try to make the max number of possibles subsets.
+ - **trainning_points_: int -** Observation window for target varaible at each prediction (an observation of 7, corresponds to use the last 7 trainning set lines). Default value is 150.           
+ - **fit_points_size_: int -** Number of points that the last models will use to predict. Default value is 150.
+ - **prediction_points_: int -** Number of points to predict. Default value is 4.
+ - **to_extract_features_: bool -** Extract features from dataset. In case of False, the model will just use covariates to predict. In case of no existence of caovariates, an error will occur. Default value is True. 
+ - **use_dates_: bool -** To use dates covariates to predict. Default value is True.    
+ - **selectBest_: int -** Number of models to use to predict points. If None, all models of models_to_use_ will be used. Default value is None.
+ - **to_retrain_: Optional[bool] -** To retrain automatically. Default value is True.
+ - **n_jobs_: Optional[int] -** Number of jobs to use. Default value is 4.            
 
 #### Methods
 # 
