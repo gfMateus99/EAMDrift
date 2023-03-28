@@ -37,6 +37,9 @@
 │  
 ├─── Run Model.py  
 │  
+├─── Data  
+│    └─── DATA_FILE.csv
+│  
 └─── README.md  
 </pre>
 
