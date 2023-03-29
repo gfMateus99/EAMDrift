@@ -123,7 +123,7 @@ This model was tested in Anaconda with Python (version 3.9.12) and depends on th
 
 ## <a name="usage_example"></a> 3. Example Usage (Tutorial):
 
-The dataset used in this test is the Electric Power Consumption (EPC) **[1]**. It measures the electric power usage in different houses in the zone of Paris, France, and for this test, just one house was chosen. The data has a 1-minute step for nearly four years but was aggregated in hours, giving us 35063 entries. As electric consumption can be related to weather, we used data from AWOS sensors available in **[2]** to be used as covariates.
+The dataset used in this test is the Electric Power Consumption (EPC) **[1]**. It measures the electric power usage in different houses in the zone of Paris, France, and for this test, just one house was chosen. The data has a 1-minute step for nearly four years but was aggregated in hours, giving us 35063 entries (to be faster to compute, in this test, we use the last 2500 entries of the total 35063). As electric consumption can be related to weather, we used data from AWOS sensors available in **[2]** to be used as covariates.
 
 **[1]** Hebrail, Georges, Berard, Alice. (2012). Individual household electric power consumption. UCI Machine Learning Repository. Accessed: 10/02/2023 [Online]. Available: doi.org/10.24432/C58K54
 
