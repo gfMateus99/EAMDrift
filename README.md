@@ -235,7 +235,60 @@ if __name__ == '__main__':
 ## <a name="output"></a> 4. Output Example:
 
 **1. Console output**
-```python
 
+The output of the console explains what the model is doing. It can be split into 3 phases that will be described next.
+
+Training phase - In this phase, the model creates a new training set and will the ensemble with that data. In this case, the model removed the ExponentialSmoothing as it was not chosen as the best at least two times.
+```python
+Splitting dataframe: 100%|██████████| 112/112 [00:00<00:00, 527.54it/s]
+Feature Extraction: 100%|██████████| 14/14 [00:13<00:00,  1.00it/s]
+Note: 246 features selected from a total of 789
+Inserting accuracys (6 models): 100%|██████████| 6/6 [48:35<00:00, 486.00s/it]
+Removed ExponentialSmoothing
+Ensemble Model accuracy: 0.8571428571428571
 ```
+
+Predicting phase - Here, the model will compute the predictions over time. Each new line corresponds to a new training zone with the respective new accuracy of the ensemble model.
+```python
+ 12%|█▏        | 10/83 [12:21<1:30:07, 74.07s/it]
+ 
+ Ensemble Model accuracy: 0.7235772357723578
+ 24%|██▍       | 20/83 [23:49<1:14:43, 71.17s/it]
+
+ Ensemble Model accuracy: 0.7819548872180451
+ 66%|██████▋   | 55/83 [1:04:14<31:08, 66.73s/it]
+ 
+ Ensemble Model accuracy: 0.7321428571428571
+ 84%|████████▍ | 70/83 [1:21:57<14:16, 65.87s/it]
+ 
+ Ensemble Model accuracy: 0.7377049180327869
+100%|██████████| 83/83 [1:37:17<00:00, 70.33s/it]
+```
+
+Compute the errors - Finally, the model will call the compute_errors() function to compute the prediction errors. The user will receive the MSE, MAE, and MAPE error.
+```python
+Mape: 0.17892600316561688
+```
+
+**2. Files output**
+
+Finally if the user evoke the print_report() function, the model will output the number of retrains until the moment that was asked and a set of files will be save in the root folder.
+
+**Output:**
+```python
+Num of Retrain Periods: 4
+```
+
+**Saved files:**
+
+**`proba.csv`** - Contribution of each model to each prediction.
+
+**`features_col.csv`** - Statistics extracted.
+
+**`retrain_periods.csv`** - Date of each retrain period.
+
+**`rules{num}.csv`** - Set of files, each corresponding to each set of rules generated in each retrain period. In these case the model would ooutput 5 files, starting with **`num=0`**.
+
+
+
 
