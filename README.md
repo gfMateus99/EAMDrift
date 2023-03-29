@@ -289,6 +289,3 @@ Num of Retrain Periods: 4
 
 **`rules{num}.csv`** - Set of files, each corresponding to each set of rules generated in each retrain period. In these case the model would ooutput 5 files, starting with **`num=0`**.
 
-
-
-
