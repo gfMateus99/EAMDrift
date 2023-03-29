@@ -234,4 +234,8 @@ if __name__ == '__main__':
 
 ## <a name="output"></a> 4. Output Example:
 
+**1. Console output**
+```python
+
+```
 
