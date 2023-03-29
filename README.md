@@ -123,10 +123,11 @@ This model was tested in Anaconda with Python (version 3.9.12) and depends on th
 
 ## <a name="usage_example"></a> 3. Example Usage (Tutorial):
 
-The dataset used in this test is the Electric Power Consumption (EPC) [1]. It measures the electric power usage in different houses in the zone of Paris, France, and for this test, just one house was chosen. The data has a 1-minute step for nearly four years but was aggregated in hours, giving us 35063 entries. As electric consumption can be related to weather, we used data from AWOS sensors available in [2] to be used as covariates.
+The dataset used in this test is the Electric Power Consumption (EPC) **[1]**. It measures the electric power usage in different houses in the zone of Paris, France, and for this test, just one house was chosen. The data has a 1-minute step for nearly four years but was aggregated in hours, giving us 35063 entries. As electric consumption can be related to weather, we used data from AWOS sensors available in **[2]** to be used as covariates.
 
-[1] Hebrail, Georges, Berard, Alice. (2012). Individual household electric power consumption. UCI Machine Learning Repository. Accessed: 10/02/2023 [Online]. Available: doi.org/10.24432/C58K54
-[2] Iowa State University. AWOS Global METAR. Accessed: 05/03/2023 [Online]. Available: mesonet.agron.iastate.edu/request/download.phtml
+**[1]** Hebrail, Georges, Berard, Alice. (2012). Individual household electric power consumption. UCI Machine Learning Repository. Accessed: 10/02/2023 [Online]. Available: doi.org/10.24432/C58K54
+
+**[2]** Iowa State University. AWOS Global METAR. Accessed: 05/03/2023 [Online]. Available: mesonet.agron.iastate.edu/request/download.phtml
 
 
 **Create a file in the same folder of EAMDrift_model:**
