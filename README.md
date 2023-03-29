@@ -164,7 +164,7 @@ warnings.filterwarnings("ignore")
 ##############################################################################
 
 # Load data
-data = pd.read_csv(r'EletricPowerConsuption_Data/LD2011_2014(MT_330)_processed.csv')
+data = pd.read_csv(r'Data/LD2011_2014(MT_330).csv')
 data['date'] = pd.to_datetime(data['date'], format='%Y-%m-%d %H:%M:%S')
 data = data.drop(["Unnamed: 0"], axis=1)
 
