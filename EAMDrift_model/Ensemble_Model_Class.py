@@ -1136,7 +1136,7 @@ class EAMDriftModel:
             x.to_csv(f"rules{num}.csv")
             num = num + 1
             
-        print("Num of Retrain Periods: " + self.retrain_periods)
+        print("Num of Retrain Periods: " + str(len(self.retrain_periods)))
 
 
 
