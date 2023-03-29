@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 
+@author: Anonymous
+
+
 Models abstract class
 
 """

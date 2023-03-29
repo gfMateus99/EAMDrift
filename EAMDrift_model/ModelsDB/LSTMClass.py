@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+
+@author: Anonymous
+
 ProphetClass
+
 """
 
 from EAMDrift_model.ModelsDB.Models_Interface import ModelsInterface

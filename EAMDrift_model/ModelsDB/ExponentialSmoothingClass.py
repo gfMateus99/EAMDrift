@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+
+@author: Anonymous
+
+
 ExponentialSmoothingClass
+
 """
 
 from EAMDrift_model.ModelsDB.Models_Interface import ModelsInterface

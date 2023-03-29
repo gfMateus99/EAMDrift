@@ -1,6 +1,19 @@
 # -*- coding: utf-8 -*-
 """
 
+@author: Anonymous
+
+
+Model Overview
+--------------
+1) Ensemble
+2) Based on Mixure of Experts (weights)
+3) Interpretable model
+4) Real-time re-trainning
+5) Allows past, future, and static co-variates
+----------------------------------------------
+
+
 The dataset used in this test is the Electric Power Consumption (EPC) [1]. It measures the electric power usage in different houses in the zone of Paris, France, and for this test, just one house was chosen. The data has a 1-minute step for nearly four years but was aggregated in hours, giving us 35063 entries. As electric consumption can be related to weather, we used data from AWOS sensors available in [2] to be used as covariates.
 
 [1] Hebrail, Georges, Berard, Alice. (2012). Individual household electric power consumption. UCI Machine Learning Repository. Accessed: 10/02/2023 [Online]. Available: doi.org/10.24432/C58K54

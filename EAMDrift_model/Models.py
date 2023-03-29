@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct 28 15:34:56 2022
 
-@author: b28069
+@author: Anonymous
+
+
 """
 
 from EAMDrift_model.ModelsDB.ExponentialSmoothingClass import ExponentialSmoothingClass
