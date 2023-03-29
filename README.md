@@ -14,7 +14,6 @@
   3) [Example Usage (Tutorial)](#usage_example)
   4) [Output example](#output)
 
-
 ## <a name="folder_structure"></a> 1. Repository Structure:
 
 <pre>
