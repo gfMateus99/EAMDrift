@@ -47,7 +47,7 @@
 
 ### Prerequisites:
 
-This model depends on the following Python packages:
+This model was tested in Anaconda with Python (version 3.9.12) and depends on the following packages:
 
 - darts (version 0.20.0)
 - river (version 0.9.0)
