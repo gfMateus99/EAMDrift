@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 
-@author: Gonçalo Mateus
+The dataset used in this test is the Electric Power Consumption (EPC) [1]. It measures the electric power usage in different houses in the zone of Paris, France, and for this test, just one house was chosen. The data has a 1-minute step for nearly four years but was aggregated in hours, giving us 35063 entries. As electric consumption can be related to weather, we used data from AWOS sensors available in [2] to be used as covariates.
 
-EAMDrift with Google Cluster Trace
-----------
+[1] Hebrail, Georges, Berard, Alice. (2012). Individual household electric power consumption. UCI Machine Learning Repository. Accessed: 10/02/2023 [Online]. Available: doi.org/10.24432/C58K54
+[2] Iowa State University. AWOS Global METAR. Accessed: 05/03/2023 [Online]. Available: mesonet.agron.iastate.edu/request/download.phtml
+
 
 """
 
@@ -30,14 +31,15 @@ warnings.filterwarnings("ignore")
 ##############################################################################
 
 # Load data
-data = pd.read_csv(r'data_hours_organized_reduced.csv')
+data = pd.read_csv(r'Data/LD2011_2014(MT_330).csv')
 data['date'] = pd.to_datetime(data['date'], format='%Y-%m-%d %H:%M:%S')
+data = data.drop(["Unnamed: 0"], axis=1)
 
 # Prepare covariates 
+
 covariates_aux = data.copy()
 covariates_col = covariates_aux.columns
-covariates_aux = covariates_aux.reset_index()
-covariates_aux.drop(covariates_col, axis = 1, inplace=True)
+covariates_aux.drop(["date", "MT_330"], axis = 1, inplace=True)
 
 # %% RUN MODEL
 
@@ -48,20 +50,23 @@ covariates_aux.drop(covariates_col, axis = 1, inplace=True)
 if __name__ == '__main__':
 
     # Data    
-    dataframe = data[["date", "cpu_usage"]].copy()    
+    dataframe = data[["date", "MT_330"]].copy()    
     
     # Models to use
     models = ["TRANSFORMER", "LSTM", "LSTM2", "SARIMAX", "ExponentialSmoothing", "Prophet"]
 
     # Standartize
-    mean_y = dataframe["cpu_usage"].mean()
-    std_y = dataframe["cpu_usage"].std()
-    dataframe["cpu_usage"] = (dataframe["cpu_usage"]-mean_y)/std_y
+    mean_y = dataframe["MT_330"].mean()
+    std_y = dataframe["MT_330"].std()
+    #dataframe["MT_330"] = (dataframe["MT_330"]-mean_y)/std_y
 
-    index = 223
-    points_to_predict = 6
+    dataframe["MT_330"] = (dataframe["MT_330"]-dataframe["MT_330"].min())/(dataframe["MT_330"].max()-dataframe["MT_330"].min())
+
+
+    index = 1500
+    points_to_predict = 12
     ensemble_model = EAMDriftModel(timeseries_df_=dataframe[0:index],
-                                   columnToPredict_="cpu_usage",
+                                   columnToPredict_="MT_330",
                                    time_column_="date",
                                    models_to_use_=models,
                                    dataTimeStep_="1H",
@@ -70,8 +75,8 @@ if __name__ == '__main__':
                                    covariates_ma_=7, 
                                    error_metric_="MAPE",
                                    #trainning_samples_size_ = 100,
-                                   trainning_points_=100, 
-                                   fit_points_size_=100,
+                                   trainning_points_=150, 
+                                   fit_points_size_=150,
                                    prediction_points_=points_to_predict,
                                    to_extract_features_=True,
                                    use_dates_=True,
@@ -99,4 +104,3 @@ if __name__ == '__main__':
  
     # Compute errors
     print(ensemble_model.compute_errors(forecast[:-points_to_predict]*mean_y+std_y, y_true*mean_y+std_y))
-       
