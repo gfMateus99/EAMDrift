@@ -49,18 +49,16 @@
 
 This model depends on the following Python packages:
 
-- darts
-- river
-- prophet
-- numpy
-- pandas
-- sklearn
-- math
-- typing
-- tqdm
-- datetime
-- warnings
-- logging
+- darts (version 0.20.0)
+- river (version 0.9.0)
+- prophet (version 1.1.1)
+- numpy (version 1.21.5)
+- pandas (version 1.4.2)
+- scikit-learn (version 1.0.2)
+- tqdm (version 4.64.0)
+- tsfresh (version 0.19.0)
+- joblib (version 1.1.0)
+
 
 ### EAMDrift:
 # 
